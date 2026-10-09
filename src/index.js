@@ -1,4 +1,4 @@
-// src/server.js
+// src/index.js
 // Entry point — loads environment variables, connects to MongoDB, then starts
 // the HTTP server. Handles unhandled rejections and signals for a graceful shutdown.
 

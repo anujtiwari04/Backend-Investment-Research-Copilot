@@ -41,7 +41,7 @@ src/
 │   ├── dateParser.js      # DD-MM-YYYY → UTC Date (no timezone drift)
 │   └── response.js        # Consistent JSON response helpers
 ├── app.js                 # Express app configuration
-└── server.js              # Server startup & graceful shutdown
+└── index.js              # Server startup & graceful shutdown
 ```
 
 ---
