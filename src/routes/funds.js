@@ -12,6 +12,8 @@ import {
   getFund,
   syncFund,
   getNavHistory,
+  getFundMetrics,
+  getFundScorecard,
 } from '../controllers/fundController.js';
 
 const router = Router();
@@ -21,6 +23,12 @@ router.get('/', listFunds);
 
 // POST /api/funds/sync/:schemeCode     — Sync a fund from MFapi
 router.post('/sync/:schemeCode', syncFund);
+
+// GET  /api/funds/:schemeCode/metrics  — Get computed financial metrics (CAGR, Drawdown, Sharpe)
+router.get('/:schemeCode/metrics', getFundMetrics);
+
+// GET  /api/funds/:schemeCode/scorecard — Get full scorecard and recommendation band
+router.get('/:schemeCode/scorecard', getFundScorecard);
 
 // GET  /api/funds/:schemeCode          — Get fund metadata
 router.get('/:schemeCode', getFund);

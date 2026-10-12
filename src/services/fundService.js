@@ -5,6 +5,8 @@
 import Fund from '../models/Fund.js';
 import NavHistory from '../models/NavHistory.js';
 import { fetchFundFromMFApi } from './mfApiService.js';
+import { computeComprehensiveMetrics } from './financialMetricsService.js';
+import { generateScorecard } from './scoringService.js';
 
 // ---------------------------------------------------------------------------
 // Fund metadata operations
@@ -138,3 +140,58 @@ export async function getNavHistory(schemeCode, { from, to, page = 1, limit = 10
 
   return { records, total };
 }
+
+// ---------------------------------------------------------------------------
+// Financial Metrics & Scorecard operations
+// ---------------------------------------------------------------------------
+
+/**
+ * Compute comprehensive financial metrics for a fund.
+ * If the fund is not yet in MongoDB, it automatically triggers a sync first.
+ *
+ * @param {number|string} schemeCode
+ * @returns {Promise<{ fund: Fund, metrics: object }>}
+ */
+export async function getFundMetrics(schemeCode) {
+  const code = Number(schemeCode);
+
+  let fund = await Fund.findOne({ schemeCode: code }).lean();
+  let navCount = await NavHistory.countDocuments({ schemeCode: code });
+
+  // Auto-sync if not present
+  if (!fund || navCount === 0) {
+    console.log(`[Metrics] Fund ${code} not found in DB. Auto-syncing from MFapi...`);
+    const synced = await syncFund(code);
+    fund = synced.fund;
+    navCount = synced.navTotal;
+  }
+
+  // Retrieve full NAV history sorted ascending
+  const rawRecords = await NavHistory.find({ schemeCode: code })
+    .select('date nav')
+    .sort({ date: 1 })
+    .lean();
+
+  const metrics = computeComprehensiveMetrics(rawRecords);
+
+  return { fund, metrics };
+}
+
+/**
+ * Generate a complete fund scorecard based on the 4 quantitative criteria.
+ *
+ * @param {number|string} schemeCode
+ * @param {object} [customBenchmark]
+ * @returns {Promise<{ fund: Fund, scorecard: object, metrics: object }>}
+ */
+export async function getFundScorecard(schemeCode, customBenchmark) {
+  const { fund, metrics } = await getFundMetrics(schemeCode);
+  const scorecard = generateScorecard(metrics, fund, customBenchmark);
+
+  return {
+    fund,
+    scorecard,
+    metrics,
+  };
+}
+

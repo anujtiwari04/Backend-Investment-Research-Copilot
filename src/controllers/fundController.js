@@ -155,6 +155,48 @@ export async function getNavHistory(req, res, next) {
 }
 
 // ---------------------------------------------------------------------------
+// GET /api/funds/:schemeCode/metrics
+// ---------------------------------------------------------------------------
+
+/**
+ * Return computed financial metrics (CAGR, Drawdown, Sharpe) for a fund.
+ */
+export async function getFundMetrics(req, res, next) {
+  try {
+    const schemeCode = parseSchemeCode(req.params.schemeCode);
+    if (!schemeCode) {
+      return sendError(res, 'schemeCode must be a positive integer.', 400, 'INVALID_SCHEME_CODE');
+    }
+
+    const data = await fundService.getFundMetrics(schemeCode);
+    return sendSuccess(res, data, 'Financial metrics calculated successfully.');
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /api/funds/:schemeCode/scorecard
+// ---------------------------------------------------------------------------
+
+/**
+ * Return normalized scorecard and recommendation band for a fund.
+ */
+export async function getFundScorecard(req, res, next) {
+  try {
+    const schemeCode = parseSchemeCode(req.params.schemeCode);
+    if (!schemeCode) {
+      return sendError(res, 'schemeCode must be a positive integer.', 400, 'INVALID_SCHEME_CODE');
+    }
+
+    const data = await fundService.getFundScorecard(schemeCode);
+    return sendSuccess(res, data, 'Fund scorecard generated successfully.');
+  } catch (err) {
+    next(err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Private helpers
 // ---------------------------------------------------------------------------
 
